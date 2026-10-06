@@ -116,6 +116,13 @@
     pre {
       @apply focus-visible:outline-accent focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-dashed;
     }
+
+    .katex-display {
+      @apply text-foreground;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-block: 0.35em;
+    }
   }
 
   /* ===== Code Blocks & Syntax Highlighting ===== */
@@ -143,4 +150,8 @@
       @apply border-border rounded-sm border px-0.5 py-px;
     }
   }
+}
+
+.app-prose .katex {
+  font-size: 1em;
 }

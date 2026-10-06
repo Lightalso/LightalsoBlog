@@ -8,6 +8,8 @@ import tailwindcss from "@tailwindcss/vite";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { rehypeHeadingIds, unified } from "@astrojs/markdown-remark";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import rehypeCallouts from "rehype-callouts";
 import {
   transformerNotationDiff,
@@ -22,6 +24,8 @@ import {
 } from "./src/utils/rehypeInlineToc";
 import config from "./astro-paper.config";
 
+import react from "@astrojs/react";
+
 export default defineConfig({
   site: config.site.url,
   integrations: [
@@ -31,6 +35,7 @@ export default defineConfig({
         config.features?.showArchives !== false || !/\/archives\/?$/.test(page),
     }),
     inlineTocDeprecation(),
+    react(),
   ],
   i18n: {
     locales: ["en"],
@@ -40,13 +45,12 @@ export default defineConfig({
     },
   },
   markdown: {
-    // Deprecated: the theme no longer uses remark-toc or remark-collapse. They
-    // stay in package.json so a customised config importing them still builds,
-    // and are removed in v8.
     processor: unified({
+      remarkPlugins: [remarkMath],
       rehypePlugins: [
         rehypeHeadingIds,
         rehypeInlineToc,
+        rehypeKatex,
         rehypeCallouts,
         rehypeTableWrapper,
       ],
@@ -68,10 +72,26 @@ export default defineConfig({
   },
   fonts: [
     {
+      name: "Noto Sans SC",
+      cssVariable: "--font-noto-sans-sc",
+      provider: fontProviders.fontsource(),
+      fallbacks: ["sans-serif"],
+      weights: [300, 400, 500, 600, 700],
+      styles: ["normal"],
+      subsets: [
+        "chinese-simplified",
+        "cyrillic",
+        "latin",
+        "latin-ext",
+        "vietnamese",
+      ],
+      formats: ["woff2"],
+    },
+    {
       name: "Google Sans Code",
       cssVariable: "--font-google-sans-code",
       provider: fontProviders.google(),
-      fallbacks: ["monospace"],
+      fallbacks: [],
       weights: [300, 400, 500, 600, 700],
       styles: ["normal", "italic"],
       formats: ["woff", "ttf"],

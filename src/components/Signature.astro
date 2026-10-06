@@ -1,0 +1,117 @@
+---
+import signatureSvg from "@/assets/signature.svg?raw";
+---
+
+<div
+  class="signature-wrapper text-foreground my-8 ml-auto w-40"
+  role="img"
+  aria-label="Lightalso signature"
+>
+  <Fragment set:html={signatureSvg} />
+</div>
+
+<script>
+  const activeSignatures = new Map<HTMLElement, () => void>();
+
+  function setupSignature(wrapper: HTMLElement): () => void {
+    const paths = Array.from(
+      wrapper.querySelectorAll<SVGPathElement>("path[stroke]")
+    );
+    if (paths.length === 0) return () => {};
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return () => {};
+    }
+
+    const strokes = paths.map(path => {
+      const length = path.getTotalLength();
+      const customDuration = Number(path.dataset.duration);
+      const duration = customDuration > 0 ? customDuration : 600;
+
+      path.style.strokeDasharray = `${length} ${length}`;
+      path.style.strokeDashoffset = String(length);
+      path.style.transition = "none";
+
+      return { path, length, duration };
+    });
+
+    let timeout: number | undefined;
+    let stopped = false;
+
+    function schedule(callback: () => void, delay: number) {
+      timeout = window.setTimeout(callback, delay);
+    }
+
+    function draw(index: number) {
+      if (stopped) return;
+      if (index >= strokes.length) {
+        schedule(() => rollback(strokes.length - 1), 2000);
+        return;
+      }
+
+      const { path, duration } = strokes[index];
+      path.getBoundingClientRect();
+      path.style.transition = `stroke-dashoffset ${duration}ms ease-in-out`;
+      path.style.strokeDashoffset = "0";
+      schedule(() => draw(index + 1), duration + 200);
+    }
+
+    function rollback(index: number) {
+      if (stopped) return;
+      if (index < 0) {
+        schedule(() => draw(0), 1000);
+        return;
+      }
+
+      const { path, length, duration } = strokes[index];
+      const rollbackDuration = duration * 0.8;
+      path.getBoundingClientRect();
+      path.style.transition = `stroke-dashoffset ${rollbackDuration}ms ease-in-out`;
+      path.style.strokeDashoffset = String(length);
+      schedule(() => rollback(index - 1), rollbackDuration + 80);
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        observer.disconnect();
+        schedule(() => draw(0), 500);
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(wrapper);
+
+    return () => {
+      stopped = true;
+      observer.disconnect();
+      window.clearTimeout(timeout);
+    };
+  }
+
+  function setupSignatures() {
+    document.querySelectorAll<HTMLElement>(".signature-wrapper").forEach(el => {
+      if (!activeSignatures.has(el)) {
+        activeSignatures.set(el, setupSignature(el));
+      }
+    });
+  }
+
+  document.addEventListener("astro:before-swap", () => {
+    activeSignatures.forEach(cleanup => cleanup());
+    activeSignatures.clear();
+  });
+  document.addEventListener("astro:page-load", setupSignatures);
+  setupSignatures();
+</script>
+
+<style>
+  .signature-wrapper :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .signature-wrapper :global(path[stroke]) {
+    stroke: currentColor;
+  }
+</style>
