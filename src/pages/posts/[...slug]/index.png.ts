@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import type { ReactNode } from "react";
 import { getCollection } from "astro:content";
 import { fontData, experimental_getFontFileURL } from "astro:assets";
 import satori from "satori";
@@ -166,7 +167,7 @@ export const GET: APIRoute = async ({ props, url }) => {
           },
         ],
       },
-    },
+    } as unknown as ReactNode,
     {
       width: 1200,
       height: 630,
