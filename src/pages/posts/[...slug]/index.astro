@@ -11,6 +11,8 @@ import { slugifyStr } from "@/utils/slugify";
 import { toTransitionName } from "@/utils/toTransitionName";
 import EditPost from "./_components/EditPost.astro";
 import ShareLinks from "./_components/ShareLinks.astro";
+import Comments from "@/components/Comments";
+import Signature from "@/components/Signature.astro";
 import BackButton from "./_components/BackButton.astro";
 import BackToTopButton from "./_components/BackToTopButton.astro";
 import AdjacentPostNav from "./_components/AdjacentPostNav.astro";
@@ -145,6 +147,8 @@ const ogImage = ogImageUrl
       <Content />
     </article>
 
+    <Signature />
+
     <hr class="my-8 border-dashed" />
 
     <EditPost class="sm:hidden" {hideEditPost} {post} />
@@ -156,6 +160,8 @@ const ogImage = ogImageUrl
     </ul>
 
     <ShareLinks />
+
+    <Comments client:only="react" />
 
     <hr class="my-8 border-dashed" />
 
